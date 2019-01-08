@@ -24,7 +24,7 @@
 			};
 			struct v2f {
 				float4 pos : SV_Position;
-				fixed3 worldRefr : TEXCOORD0;
+				fixed3 worldRefl : TEXCOORD0;
 				fixed3 worldViewDir : TEXCOORD1;
 				fixed3 worldPos : TEXCOORD2;
 				SHADOW_COORDS(3)
@@ -36,8 +36,7 @@
 				o.worldPos = mul(UNITY_MATRIX_M, v.vertex);
 				o.worldViewDir = UnityWorldSpaceViewDir(o.worldPos);
 				o.worldNormal = UnityObjectToWorldNormal(v.normal);
-				//折射函数  入射方向，法线，入射折射率/出射折射率
-				o.worldRefr = reflect(-normalize(o.worldViewDir), o.worldNormal);
+				o.worldRefl = reflect(-normalize(o.worldViewDir), o.worldNormal);
 				TRANSFER_SHADOW(o);
 				return o;
 			}
@@ -45,16 +44,17 @@
 			fixed4 frag(v2f i) :SV_Target{
 				fixed3 worldNormal = normalize(i.worldNormal);
 				fixed3 worldViewDir = normalize(i.worldViewDir);
-				fixed3 worldRefr = normalize(i.worldRefr);
+				fixed3 worldRefl = normalize(i.worldRefl);
 				fixed3 worldLightDir = normalize(UnityWorldSpaceLightDir(i.worldPos));
 
 				fixed4 ambient = unity_AmbientSky;
 				fixed3 diffuse = _LightColor0.rgb * _Color.rgb * max(0, dot(worldNormal, worldLightDir));
 
-				fixed3 reflection = texCUBE(_Cubemap, i.worldRefr).rgb * _RefractColor.rgb;
+				fixed3 reflection = texCUBE(_Cubemap, i.worldRefl).rgb * _RefractColor.rgb;
 
 				UNITY_LIGHT_ATTENUATION(atten, i, i.worldPos);
 
+				//经验公式，实际上还是利用了  dot(worldNormal, worldViewDir) 的特点
 				float fresnel = _FresnelScale + pow(1 - dot(worldNormal, worldViewDir), 5) * (1 - _FresnelScale);
 				fixed3 color = ambient + lerp(diffuse, reflection, saturate(fresnel))* atten;
 				return fixed4(color, 1);

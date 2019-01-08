@@ -46,17 +46,17 @@
 				fixed4 ambient = UNITY_LIGHTMODEL_AMBIENT;
 
 				fixed3 worldLight = normalize(UnityWorldSpaceLightDir(a.worldPos));  //_WorldSpaceLightPos0.xyz);
-				fixed diffuseStrenth = saturate(dot(worldLight,a.normal));
+				fixed diffuseStrenth = saturate(dot(worldLight,a.normal));//Bling-Phong  法线* 指向光源的方向
 				fixed4 diffuse = _Diffuse *_LightColor0 * diffuseStrenth;
 				fixed3 viewDir = normalize(UnityWorldSpaceViewDir(a.worldPos));
 
 				fixed3 halfDir = normalize(viewDir + worldLight);
 
-				fixed3 specularStrenth = saturate(dot (a.normal,halfDir));
+				fixed3 specularStrenth = saturate(dot (a.normal,halfDir));//spec =  (half * view)^gloss
 				fixed3 specular = _Specular.xyz * _LightColor0 * pow(specularStrenth,_Gloss);
 
 				//fixed shadow = SHADOW_ATTENUATION(a);
-				UNITY_LIGHT_ATTENUATION(atten, a,a.worldPos);
+				UNITY_LIGHT_ATTENUATION(atten, a,a.worldPos);//阴影相关
 
 				fixed3 color = atten * ( specular + diffuse.xyz )+ ambient.xyz;
 				return fixed4(color,1);
