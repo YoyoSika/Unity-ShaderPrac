@@ -24,7 +24,7 @@
 		float4 _BumpMap_ST;
 		samplerCUBE _Cubemap;
 		sampler2D _RefractionTex;
-		float4 _RefractionTex_TexelSize;//纹素大小，每一个像素的大小
+		float4 _RefractionTex_TexelSize;//纹素大小，每一个像素的大小，类似_ST后缀，但这个Unity会自动赋值
 
 		float _RefractAmount;
 		float _RefractRatio;
@@ -34,28 +34,28 @@
 		struct a2v {
 			fixed3 vertex : POSITION;
 			fixed3 normal : NORMAL;
-			fixed4 tangent : TANGENT;
+			fixed4 tangent : TANGENT;//xyz 代表切线所在直线的方向，w决定直线的朝向
 			float4 texcoord : TEXCOORD0;
 		};
 		struct v2f {
 			float4 pos : SV_Position;
 			float4 uv : TEXCOORD0;
 			float4 scrPos : TEXCOORD1;
-			float4 TtoW0 : TEXCOORD2;
+			float4 TtoW0 : TEXCOORD2;//这种是在世界坐标进行光照计算
 			float4 TtoW1 : TEXCOORD3;
 			float4 TtoW2 : TEXCOORD4;
 		};
 		v2f vert(a2v v) {
 			v2f o;
 			o.pos = UnityObjectToClipPos(v.vertex);
-			o.scrPos = ComputeGrabScreenPos(o.pos);//计算屏幕坐标
+			o.scrPos = ComputeGrabScreenPos(o.pos);//计算屏幕坐标，从模型坐标系->屏幕坐标系
 			o.uv.xy = TRANSFORM_TEX(v.texcoord, _MainTex);
 			o.uv.zw = TRANSFORM_TEX(v.texcoord, _BumpMap);
 
 			float3 worldPos = mul(UNITY_MATRIX_M, v.vertex);
-			float3 worldNormal = UnityObjectToWorldNormal(v.normal);
-			float3 worldTan = UnityObjectToWorldDir(v.tangent.xyz);
-			float3 worldBinormal = cross(worldTan, worldNormal) * v.tangent.w;
+			float3 worldNormal = UnityObjectToWorldNormal(v.normal);//对应切线空间的y轴
+			float3 worldTan = UnityObjectToWorldDir(v.tangent.xyz);//对应切线空间的X轴
+			float3 worldBinormal = cross(worldTan, worldNormal) * v.tangent.w;//对应z轴，叉乘获得
 
 			o.TtoW0 = float4(worldTan.x, worldBinormal.x, worldNormal.x, worldPos.x);
 			o.TtoW1 = float4(worldTan.y, worldBinormal.y, worldNormal.y, worldPos.y);
@@ -72,11 +72,9 @@
 			float2 offset = unpackedNormal.xy * _Distortion  * _RefractionTex_TexelSize.xy;
 			i.scrPos.xy += offset;
 			//拿到透过来的颜色，也就是折射颜色
-			fixed3 refrCol = tex2D(_RefractionTex, i.scrPos.xy / i.scrPos.w).rgb;//_RefractionTex是grab下来的,这里做透视除法转换为了(0,1)的uv坐标
+			fixed3 refrCol = tex2D(_RefractionTex, i.scrPos.xy / i.scrPos.w).rgb;//_RefractionTex是grab下来的,i.scrPos.xy / i.scrPos.w 是做透视除法转换为了(0,1)的uv坐标
 
-
-
-			fixed3 worldNormal = fixed3(mul(unpackedNormal, i.TtoW0), mul(unpackedNormal, i.TtoW1), mul(unpackedNormal, i.TtoW2));
+			fixed3 worldNormal = fixed3(mul(unpackedNormal, i.TtoW0), mul(unpackedNormal, i.TtoW1), mul(unpackedNormal, i.TtoW2));//相当于左乘3*3的转换坐标
 			worldNormal = normalize(worldNormal);
 			float3 worldPos = float3(i.TtoW0.w, i.TtoW1.w, i.TtoW2.w);
 			fixed3 worldViewDir = normalize(UnityWorldSpaceViewDir(worldPos));
