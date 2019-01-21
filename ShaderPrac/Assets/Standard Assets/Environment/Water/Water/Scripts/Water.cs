@@ -85,15 +85,15 @@ namespace UnityStandardAssets.Water
             if (mode >= WaterMode.Reflective)
             {
                 // Reflect camera around reflection plane
-                float d = -Vector3.Dot(normal, pos) - clipPlaneOffset;//平面离原点的距离
+                float d = -Vector3.Dot(normal, pos) - clipPlaneOffset;//平面离原点的距离，前面加了一个负号表方向?
                 Vector4 reflectionPlane = new Vector4(normal.x, normal.y, normal.z, d);//确定镜面平面
                 //     ·  |  ·  总之是想找出对称的另一个点
                 Matrix4x4 reflection = Matrix4x4.zero;
-                CalculateReflectionMatrix(ref reflection, reflectionPlane);//对称变换的矩阵
+                CalculateReflectionMatrix(ref reflection, reflectionPlane);//世界空间中的对称变换矩阵
                 Vector3 oldpos = cam.transform.position;
                 Vector3 newpos = reflection.MultiplyPoint(oldpos);
 
-                //相当于把镜面相机挪到了对称的位置（包括相机朝向也做了对称）
+                //相当于把镜面相机挪到了对称的位置（包括相机朝向也做了对称）, 注意这里的左右顺序，世界坐标先reflection 再 worldToCameraMatrix
                 reflectionCamera.worldToCameraMatrix = cam.worldToCameraMatrix * reflection; //camera space 和 view space 是同一个概念
 
                 // Setup oblique projection（斜投影） matrix so that near plane is our reflection
@@ -102,7 +102,7 @@ namespace UnityStandardAssets.Water
                 //在这个操作里面调用了CalculateObliqueMatrix的API
                 //将普通的视锥体，转成了斜投影视锥体
                 Vector4 clipPlane = CameraSpacePlane(reflectionCamera, pos, normal, 1.0f);
-                reflectionCamera.projectionMatrix = cam.CalculateObliqueMatrix(clipPlane);
+                //reflectionCamera.projectionMatrix = cam.CalculateObliqueMatrix(clipPlane);
                 //↑↑↑↑ projectionMatrix 和  clipMatrix 是同一个概念，都是相机坐标系转裁剪坐标系的矩阵
                 //所以此时不管用cam还是reflectionCamera来调用CalculateObliqueMatrix都是OK的，因为他们的相机内参是一致的
                 //clipPlane 本身是相机空间的
@@ -387,6 +387,10 @@ namespace UnityStandardAssets.Water
         }
 
         // Calculates reflection matrix around the given plane
+        //可以理解为平移 + 旋转  的复合变换 
+        //平移为 2d * normal  
+        //旋转套用镜像旋转矩阵
+        //二者结合就是镜像变换了
         static void CalculateReflectionMatrix(ref Matrix4x4 reflectionMat, Vector4 plane)
         {
             reflectionMat.m00 = (1F - 2F * plane[0] * plane[0]);
