@@ -11,7 +11,7 @@ Properties {
 	WaveSpeed ("Wave speed (map1 x,y; map2 x,y)", Vector) = (19,9,-16,-7)
 	[NoScaleOffset] _ReflectiveColor ("Reflective color (RGB) fresnel (A) ", 2D) = "" {}
 	_HorizonColor ("Simple water horizon color", COLOR)  = ( .172, .463, .435, 1)
-	[HideInInspector] _ReflectionTex ("Internal Reflection", 2D) = "" {}
+	_ReflectionTex ("Internal Reflection", 2D) = "" {}
 	[HideInInspector] _RefractionTex ("Internal Refraction", 2D) = "" {}
 }
 
@@ -86,7 +86,7 @@ v2f vert(appdata v)
 	o.viewDir.xzy = WorldSpaceViewDir(v.vertex);
 	
 	#if defined(HAS_REFLECTION) || defined(HAS_REFRACTION)
-	o.ref = ComputeNonStereoScreenPos(o.pos);//直接转屏幕坐标系的uv
+	o.ref = ComputeNonStereoScreenPos(o.pos);//齐次坐标下的屏幕坐标值
 	#endif
 
 	UNITY_TRANSFER_FOG(o,o.pos);

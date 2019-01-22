@@ -102,7 +102,7 @@ namespace UnityStandardAssets.Water
                 //在这个操作里面调用了CalculateObliqueMatrix的API
                 //将普通的视锥体，转成了斜投影视锥体
                 Vector4 clipPlane = CameraSpacePlane(reflectionCamera, pos, normal, 1.0f);
-                //reflectionCamera.projectionMatrix = cam.CalculateObliqueMatrix(clipPlane);
+                reflectionCamera.projectionMatrix = cam.CalculateObliqueMatrix(clipPlane);
                 //↑↑↑↑ projectionMatrix 和  clipMatrix 是同一个概念，都是相机坐标系转裁剪坐标系的矩阵
                 //所以此时不管用cam还是reflectionCamera来调用CalculateObliqueMatrix都是OK的，因为他们的相机内参是一致的
                 //clipPlane 本身是相机空间的
@@ -123,6 +123,8 @@ namespace UnityStandardAssets.Water
                 //reflectionCamera.transform.position = oldpos;
                 GL.invertCulling = oldCulling;
                 GetComponent<Renderer>().sharedMaterial.SetTexture("_ReflectionTex", m_ReflectionTexture);
+                //至此，这个RT里面的图像已经可以直接往屏幕上贴了
+                //shader里面再做一些水波的后效
             }
 
             // Render refraction

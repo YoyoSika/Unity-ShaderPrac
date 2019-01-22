@@ -48,7 +48,7 @@
 		v2f vert(a2v v) {
 			v2f o;
 			o.pos = UnityObjectToClipPos(v.vertex);
-			o.scrPos = ComputeGrabScreenPos(o.pos);//计算屏幕坐标，从模型坐标系->屏幕坐标系
+			o.scrPos = ComputeGrabScreenPos(o.pos);//齐次坐标下的屏幕坐标值(-w,w) --->（0，w）
 			o.uv.xy = TRANSFORM_TEX(v.texcoord, _MainTex);
 			o.uv.zw = TRANSFORM_TEX(v.texcoord, _BumpMap);
 
@@ -73,7 +73,7 @@
 			i.scrPos.xy += offset;
 			//拿到透过来的颜色，也就是折射颜色
 			fixed3 refrCol =  tex2D(_RefractionTex, i.scrPos.xy / i.scrPos.w).rgb;//_RefractionTex是grab下来的,i.scrPos.xy / i.scrPos.w 是做透视除法转换为了(0,1)的uv坐标
-			//等价于tex2Dproj(_RefractionTex,i.scrPos)
+			//等价于tex2Dproj(_RefractionTex,UNITY_PROJ_COORD(i.scrPos))
 
 			fixed3 worldNormal = fixed3(mul(unpackedNormal, i.TtoW0), mul(unpackedNormal, i.TtoW1), mul(unpackedNormal, i.TtoW2));//相当于左乘3*3的转换坐标
 			worldNormal = normalize(worldNormal);
