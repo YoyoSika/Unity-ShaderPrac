@@ -64,7 +64,18 @@ Shader "Unity Shaders Book/Chapter 11/Billboard" {
 				float3 centerOffs = v.vertex.xyz - center;
 				float3 localPos = center + rightDir * centerOffs.x + upDir * centerOffs.y + normalDir * centerOffs.z;
               
+
+
 				o.pos = UnityObjectToClipPos(float4(localPos, 1));
+
+				//一种粒子Billboard的简单做法↓
+				//只要相机空间里面的x、y与模型空间的坐标一致，那自然是正对相机的
+				//不过w分量还是得
+				o.pos = mul(UNITY_MATRIX_P,
+					mul(UNITY_MATRIX_MV, float4(0.0, 0.0, 0.0, 1.0))
+					+ float4(v.vertex.x, v.vertex.y,0.0, 0.0));
+
+
 				o.uv = TRANSFORM_TEX(v.texcoord,_MainTex);
 
 				return o;
