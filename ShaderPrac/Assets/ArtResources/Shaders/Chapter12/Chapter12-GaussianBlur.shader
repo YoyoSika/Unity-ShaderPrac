@@ -6,7 +6,7 @@ Shader "Unity Shaders Book/Chapter 12/Gaussian Blur" {
 		_BlurSize ("Blur Size", Float) = 1.0
 	}
 	SubShader {
-		CGINCLUDE
+		CGINCLUDE//这个格式感觉可以学一下
 		
 		#include "UnityCG.cginc"
 		
@@ -41,7 +41,7 @@ Shader "Unity Shaders Book/Chapter 12/Gaussian Blur" {
 			half2 uv = v.texcoord;
 			
 			o.uv[0] = uv;
-			o.uv[1] = uv + float2(_MainTex_TexelSize.x * 1.0, 0.0) * _BlurSize;
+			o.uv[1] = uv + float2(_MainTex_TexelSize.x * 1.0, 0.0) * _BlurSize;//原有像素距离上的偏移距离
 			o.uv[2] = uv - float2(_MainTex_TexelSize.x * 1.0, 0.0) * _BlurSize;
 			o.uv[3] = uv + float2(_MainTex_TexelSize.x * 2.0, 0.0) * _BlurSize;
 			o.uv[4] = uv - float2(_MainTex_TexelSize.x * 2.0, 0.0) * _BlurSize;

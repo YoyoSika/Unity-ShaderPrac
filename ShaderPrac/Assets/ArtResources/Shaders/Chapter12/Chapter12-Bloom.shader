@@ -56,8 +56,8 @@ Shader "Unity Shaders Book/Chapter 12/Bloom" {
 			o.uv.xy = v.texcoord;		
 			o.uv.zw = v.texcoord;
 			
-			#if UNITY_UV_STARTS_AT_TOP			
-			if (_MainTex_TexelSize.y < 0.0)
+			#if UNITY_UV_STARTS_AT_TOP//DX原点左上角，而OPGL原点左下角
+			if (_MainTex_TexelSize.y < 0.0)//DX开了抗体锯齿这个会变负数
 				o.uv.w = 1.0 - o.uv.w;
 			#endif
 				        	

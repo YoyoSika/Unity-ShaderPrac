@@ -19,7 +19,7 @@ Shader "Unity Shaders Book/Chapter 12/Edge Detection" {
 			#pragma fragment fragSobel
 			
 			sampler2D _MainTex;  
-			uniform half4 _MainTex_TexelSize;
+			uniform half4 _MainTex_TexelSize;//纹素大小 (每个像素的宽是多少uv上的数值）
 			fixed _EdgeOnly;
 			fixed4 _EdgeColor;
 			fixed4 _BackgroundColor;
@@ -35,11 +35,12 @@ Shader "Unity Shaders Book/Chapter 12/Edge Detection" {
 				
 				half2 uv = v.texcoord;
 				
-				o.uv[0] = uv + _MainTex_TexelSize.xy * half2(-1, -1);
-				o.uv[1] = uv + _MainTex_TexelSize.xy * half2(0, -1);
-				o.uv[2] = uv + _MainTex_TexelSize.xy * half2(1, -1);
-				o.uv[3] = uv + _MainTex_TexelSize.xy * half2(-1, 0);
-				o.uv[4] = uv + _MainTex_TexelSize.xy * half2(0, 0);
+				//周边像素的uv坐标
+				o.uv[0] = uv + _MainTex_TexelSize.xy * half2(-1, -1);//左下
+				o.uv[1] = uv + _MainTex_TexelSize.xy * half2(0, -1);//下
+				o.uv[2] = uv + _MainTex_TexelSize.xy * half2(1, -1);//右下
+				o.uv[3] = uv + _MainTex_TexelSize.xy * half2(-1, 0);//左
+				o.uv[4] = uv + _MainTex_TexelSize.xy * half2(0, 0);//...
 				o.uv[5] = uv + _MainTex_TexelSize.xy * half2(1, 0);
 				o.uv[6] = uv + _MainTex_TexelSize.xy * half2(-1, 1);
 				o.uv[7] = uv + _MainTex_TexelSize.xy * half2(0, 1);
@@ -53,6 +54,7 @@ Shader "Unity Shaders Book/Chapter 12/Edge Detection" {
 			}
 			
 			half Sobel(v2f i) {
+				//sobel算子,可以观察到Gx其实就是左右两列的之差
 				const half Gx[9] = {-1,  0,  1,
 										-2,  0,  2,
 										-1,  0,  1};
@@ -64,14 +66,14 @@ Shader "Unity Shaders Book/Chapter 12/Edge Detection" {
 				half edgeX = 0;
 				half edgeY = 0;
 				for (int it = 0; it < 9; it++) {
-					texColor = luminance(tex2D(_MainTex, i.uv[it]));
-					edgeX += texColor * Gx[it];
+					texColor = luminance(tex2D(_MainTex, i.uv[it]));//颜色的亮度
+					edgeX += texColor * Gx[it];//叠加 权重*采样点 
 					edgeY += texColor * Gy[it];
 				}
 				
 				half edge = 1 - abs(edgeX) - abs(edgeY);
 				
-				return edge;
+				return edge;//由此可见梯度越大这个值越小
 			}
 			
 			fixed4 fragSobel(v2f i) : SV_Target {
