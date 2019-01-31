@@ -29,7 +29,7 @@ Shader "Unity Shaders Book/Chapter 12/Motion Blur" {
 		}
 		
 		fixed4 fragRGB (v2f i) : SV_Target {
-			return fixed4(tex2D(_MainTex, i.uv).rgb, _BlurAmount);
+			return fixed4(tex2D(_MainTex, i.uv).rgb, _BlurAmount);//blurAmount作为第四个坐标传回
 		}
 		
 		half4 fragA (v2f i) : SV_Target {
@@ -38,11 +38,14 @@ Shader "Unity Shaders Book/Chapter 12/Motion Blur" {
 		
 		ENDCG
 		
-		ZTest Always Cull Off ZWrite Off
+		ZTest Always  ZWrite Off
 		
 		Pass {
-			Blend SrcAlpha OneMinusSrcAlpha
-			ColorMask RGB
+			ColorMask RGB//设定渲染结果的输出通道
+			//在这里虽然Alpha本身不会被输出，但是a通道仍然在输出rgb的Blend过程中起作用
+			//所以老图会在每帧迭代的反复blend过程渐渐隐去，新图不断的以Alpha的比例进来
+			Blend SrcAlpha OneMinusSrcAlpha //
+
 			
 			CGPROGRAM
 			
@@ -53,7 +56,7 @@ Shader "Unity Shaders Book/Chapter 12/Motion Blur" {
 		}
 		
 		Pass {   
-			Blend One Zero
+			Blend One Zero//alpha通道直接用1覆盖
 			ColorMask A
 			   	
 			CGPROGRAM  
